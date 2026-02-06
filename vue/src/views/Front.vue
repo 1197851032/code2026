@@ -27,6 +27,8 @@
     <div style="background-color:#f0f2ff">
       <router-view @updateUser="updateUser" />
     </div>
+
+    <Footer />
   </div>
 </template>
 
@@ -34,6 +36,7 @@
 import {reactive} from "vue";
 import router from "@/router";
 import {ElMessage} from "element-plus";
+import Footer from "@/components/Footer.vue";
 
 const data = reactive({
   user: JSON.parse(localStorage.getItem('system-user') || '{}')

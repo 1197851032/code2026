@@ -34,6 +34,14 @@
               <el-icon><Document /></el-icon>
               <span>商品分类</span>
             </el-menu-item>
+            <el-menu-item index="/manager/goods">
+              <el-icon><Document /></el-icon>
+              <span>商品信息</span>
+            </el-menu-item>
+            <el-menu-item index="/manager/carousel">
+              <el-icon><Document /></el-icon>
+              <span>轮播图信息</span>
+            </el-menu-item>
           </el-sub-menu>
           <el-sub-menu index="user">
             <template #title>
@@ -41,11 +49,11 @@
               <span>用户管理</span>
             </template>
             <el-menu-item index="/manager/admin">
-              <el-icon></el-icon>
+              <el-icon><User /></el-icon>
               <span>管理员信息</span>
             </el-menu-item>
             <el-menu-item index="/manager/user">
-              <el-icon></el-icon>
+              <el-icon><User /></el-icon>
               <span>普通用户</span>
             </el-menu-item>
           </el-sub-menu>

@@ -9,6 +9,8 @@
   },
   "dependencies": {
     "@element-plus/icons-vue": "^2.1.0",
+    "@wangeditor/editor": "^5.1.23",
+    "@wangeditor/editor-for-vue": "^5.1.12",
     "axios": "^1.6.2",
     "element-plus": "^2.8.4",
     "sass": "^1.69.5",
@@ -17,6 +19,7 @@
     "vue-router": "^4.2.5"
   },
   "devDependencies": {
+    "@rollup/plugin-commonjs": "^29.0.0",
     "@vitejs/plugin-vue": "^4.4.0",
     "unplugin-auto-import": "^0.16.7",
     "unplugin-vue-components": "^0.25.2",

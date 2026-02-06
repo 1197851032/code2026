@@ -16,7 +16,7 @@
         <el-table-column label="名称" prop="name"></el-table-column>
         <el-table-column label="头像">
           <template #default="scope">
-            <el-image :src="scope.row.avatar" style="width: 40px; height: 40px; border-radius: 50%"></el-image>
+            <el-image v-if="scope.row.avatar" :src="scope.row.avatar" :preview-src-list="[scope.row.avatar]" preview-teleported style="width: 40px; height: 40px; border-radius: 50%"></el-image>
           </template>
         </el-table-column>
         <el-table-column label="角色" prop="role"></el-table-column>
@@ -30,7 +30,7 @@
     </div>
 
     <div class="card">
-      <el-pagination background layout="total, prev, pager, next" v-model:page-size="data.pageSize" v-model:current-page="data.pageNum" :total="data.total"/>
+      <el-pagination @current-change="load" background layout="total, prev, pager, next" v-model:page-size="data.pageSize" v-model:current-page="data.pageNum" :total="data.total"/>
     </div>
 
     <el-dialog title="信息" width="30%" v-model="data.formVisible" :close-on-click-modal="false" destroy-on-close>
