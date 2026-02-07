@@ -41,7 +41,6 @@
           </el-upload>
         </el-form-item>
         <el-form-item label="账号" prop="username">
-          <!--id后加!==undefined-->
           <el-input :disabled="data.form.id" v-model="data.form.username" autocomplete="off" />
         </el-form-item>
         <el-form-item label="名称" prop="name">
