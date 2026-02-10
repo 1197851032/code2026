@@ -4,12 +4,15 @@
       <img :src="data.goods.img" alt="" style="width: 300px; height: 300px">
       <div style="flex: 1">
         <div style="display: flex; align-items: flex-start; grid-gap: 20px; margin-bottom: 10px">
-          <div style="font-size: 22px; font-weight: bold; line-height: 25px">
+          <div style="font-size: 22px; font-weight: bold; line-height: 25px; flex: 1">
             <el-tag style="margin-right: 5px; background-color: red; color: white" type="danger" v-if="data.goods.recommend === '是'">推荐</el-tag>
             {{ data.goods.name }}
           </div>
-          <div style="width: 60px; cursor: pointer; text-align:right; color: #666">
+          <div @click="addCollect" style="width: 60px; cursor: pointer; text-align:right; color: #666" v-if="!data.userCollect?.id">
             <el-icon style="position: relative; top: 3px" size="18"><Star /></el-icon>收藏
+          </div>
+          <div @click="removeCollect" style="width: 90px; cursor: pointer; text-align:right; color: orange" v-if="data.userCollect?.id">
+            <el-icon style="position: relative; top: 3px" size="18"><StarFilled /></el-icon>已收藏
           </div>
         </div>
         <div style="margin-bottom: 20px">
@@ -19,7 +22,7 @@
         </div>
         <div style="margin-bottom: 20px; padding: 10px; border-radius: 5px; background-color: #e8e4e4; line-height: 25px; text-align:justify">{{ data.goods.description }}</div>
         <div>
-          <el-input-number style="width: 150px" :min="1" v-model="data.num"></el-input-number>
+          <el-input-number style="height: 40px;width: 150px" :min="1" v-model="data.num"></el-input-number>
           <el-button style="height: 40px; margin-left: 5px" type="danger">加入购物车</el-button>
           <el-button style="height: 40px; margin-left: 5px" type="danger">立即购买</el-button>
         </div>
@@ -47,14 +50,56 @@
 import { reactive } from "vue";
 import router from "@/router";
 import request from "@/utils/request";
+import {ElMessage} from "element-plus";
 
 const data = reactive({
+  user: JSON.parse(localStorage.getItem('system-user') || '{}'),
   id: router.currentRoute.value.query.id,
   goods: {},
   num: 1,
   current: '商品详情',
-  commentList:[]
+  commentList:[],
+  userCollect: {}
 })
+
+const loadCollect = () => {
+  request.get('/collect/selectAll',{
+    params:{
+      goodsId: data.id,
+      userId: data.user.id
+    }
+  }).then(res => {
+    if (res.data?.length > 0) {
+      data.userCollect = res.data[0]
+    } else {
+      data.userCollect = {}
+    }
+  })
+}
+loadCollect();
+
+const removeCollect = () => {
+  request.delete('/collect/delete/' + data.userCollect.id).then(res => {
+    if (res.code === '200') {
+      ElMessage.success('操作成功');
+      loadCollect();
+    } else {
+      ElMessage.error(res.msg);
+    }
+  })
+}
+
+const addCollect = () => {
+  request.post('/collect/add',{ goodsId: data.id, userId: data.user.id}).then( res => {
+    if (res.code === '200') {
+      ElMessage.success('操作成功');
+
+      loadCollect();
+    } else {
+      ElMessage.error(res.msg);
+    }
+  })
+}
 
 const changeTab = (tabName) => {
   data.current =tabName;

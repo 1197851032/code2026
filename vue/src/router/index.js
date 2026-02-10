@@ -17,6 +17,7 @@ const router = createRouter({
         { path: 'category', component: () => import('@/views/manager/Category.vue')},
         { path: 'goods', component: () => import('@/views/manager/Goods.vue')},
         { path: 'carousel', component: () => import('@/views/manager/Carousel.vue')},
+        { path: 'collect', component: () => import('@/views/manager/Collect.vue')},
       ]
     },
     {
@@ -29,11 +30,16 @@ const router = createRouter({
         { path: 'password', component: () => import('@/views/front/Password.vue')},
         { path: 'goods', component: () => import('@/views/front/Goods.vue')},
         { path: 'goodsDetail', component: () => import('@/views/front/GoodsDetail.vue')},
+        { path: 'userCollect', component: () => import('@/views/front/UserCollect.vue')},
       ]
     },
     { path: '/login', component: () => import('@/views/Login.vue') },
     { path: '/register', component: () => import('@/views/Register.vue') }
   ]
+})
+
+router.beforeEach(() => {
+  window.scroll({top: 0, behavior:"smooth"})
 })
 
 export default router
