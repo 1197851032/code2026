@@ -26,6 +26,7 @@
           </div>
           <template #dropdown>
             <el-dropdown-menu>
+              <el-dropdown-item @click.native="router.push('/front/userRecharge')">我的充值</el-dropdown-item>
               <el-dropdown-item @click.native="router.push('/front/userCollect')">我的收藏</el-dropdown-item>
               <el-dropdown-item @click.native="router.push('/front/person')">个人信息</el-dropdown-item>
               <el-dropdown-item @click.native="router.push('/front/password')">修改密码</el-dropdown-item>

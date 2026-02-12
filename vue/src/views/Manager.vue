@@ -46,6 +46,10 @@
               <el-icon><Document /></el-icon>
               <span>用户收藏</span>
             </el-menu-item>
+            <el-menu-item index="/manager/recharge">
+              <el-icon><Document /></el-icon>
+              <span>用户充值</span>
+            </el-menu-item>
           </el-sub-menu>
           <el-sub-menu index="user">
             <template #title>
