@@ -21,7 +21,7 @@ public class CopyUtils {
         // 复制源文件前缀
         String sourceName = "Category";
         // 复制后的目标文件前缀
-        String targetName = "Recharge";
+        String targetName = "OrderDetail";
 
         // 复制一整套的 controller、Service、Mapper、Mapper.xml
         copyMapperXml(sourceName, targetName);

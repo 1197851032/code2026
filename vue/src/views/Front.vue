@@ -12,6 +12,8 @@
           <el-menu  router :default-active="router.currentRoute.value.path" style="background-color: #2e3143;" ellipsis mode="horizontal">
             <el-menu-item index="/front/home">首页</el-menu-item>
             <el-menu-item index="/front/goods">精选商品</el-menu-item>
+            <el-menu-item index="/front/cart">购物车</el-menu-item>
+            <el-menu-item index="/front/userOrders">商品订单</el-menu-item>
           </el-menu>
         </div>
         <div style="width: fit-content" v-if="router.currentRoute.value.path !== '/front/goods'">

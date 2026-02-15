@@ -14,7 +14,7 @@
       </div>
       <div>
         <el-table :data="data.tableData" stripe>
-          <el-table-column prop="money" label="充值金额">
+          <el-table-column label="充值金额">
             <template #default="scope">
               <b style="color: red">{{ scope.row.money }}元</b>
             </template>

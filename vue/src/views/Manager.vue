@@ -30,6 +30,10 @@
               <el-icon><Memo /></el-icon>
               <span>信息管理</span>
             </template>
+            <el-menu-item index="/manager/orders">
+              <el-icon><Document /></el-icon>
+              <span>订单信息</span>
+            </el-menu-item>
             <el-menu-item index="/manager/category">
               <el-icon><Document /></el-icon>
               <span>商品分类</span>
