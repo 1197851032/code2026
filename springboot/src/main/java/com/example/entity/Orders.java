@@ -20,8 +20,19 @@ public class Orders {
     private String time;
     /**配送类型 */
     private String deliverType;
+    private String address;
+    private String deliver;
+    private String goodsName;
     private List<Cart> cartList;
     private List<OrderDetail> orderDetailList;
+
+    public String getGoodsName() {
+        return goodsName;
+    }
+
+    public void setGoodsName(String goodsName) {
+        this.goodsName = goodsName;
+    }
 
     public List<OrderDetail> getOrderDetailList() {
         return orderDetailList;
@@ -29,6 +40,22 @@ public class Orders {
 
     public void setOrderDetailList(List<OrderDetail> orderDetailList) {
         this.orderDetailList = orderDetailList;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    public String getDeliver() {
+        return deliver;
+    }
+
+    public void setDeliver(String deliver) {
+        this.deliver = deliver;
     }
 
     public List<Cart> getCartList() {

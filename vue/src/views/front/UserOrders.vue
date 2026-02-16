@@ -1,8 +1,9 @@
 <template>
-  <div class="front-container">
+  <div class="front-container" style="width: 80%">
 
-    <div style="margin-bottom: 20px;">
+    <div style="margin-bottom: 10px;">
       <el-input clearable @clear="load" v-model="data.orderNo" style="width: 400px; height: 40px; margin-right: 10px" placeholder="请输入订单编号查询"></el-input>
+      <el-input clearable @clear="load" v-model="data.goodsName" style="width: 400px; height: 40px; margin-right: 10px" placeholder="请输入商品名称查询"></el-input>
       <el-button style="height: 40px" type="primary" @click="load">查询</el-button>
     </div>
 
@@ -33,7 +34,7 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="orderNo" label="订单编号" width="240">
+        <el-table-column prop="orderNo" label="订单编号" width="230">
           <template #default="scope">
             <b style="color: #333">{{ scope.row.orderNo }}</b>
           </template>
@@ -54,10 +55,12 @@
           </template>
         </el-table-column>
         <el-table-column prop="time" label="下单时间"></el-table-column>
+        <el-table-column prop="address" label="地址" width="200"></el-table-column>
         <el-table-column label="订单操作" align="center" width="120">
           <template #default="scope">
-            <el-button type="danger" v-if="scope.row.status === '待接单'">取消</el-button>
-            <el-button type="primary" v-if="scope.row.status === '待收货'">确认收货</el-button>
+            <el-button @click="cancel(scope.row)" type="danger" v-if="scope.row.status === '待接单'">取消</el-button>
+            <el-button type="success" v-if="scope.row.status === '已完成'">评价</el-button>
+            <el-button @click="done(scope.row)" type="primary" v-if="scope.row.status === '已出货' || scope.row.status === '已配送'">确认收货</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -68,19 +71,6 @@
 
     </div>
 
-    <el-dialog title="订单信息" width="30%" v-model="data.formVisible" :close-on-click-modal="false" destroy-on-close>
-      <el-form ref="formRef" :model="data.form" :rules="data.rules" label-width="80px" style="padding-right: 30px; padding-top: 20px">
-        <el-form-item label="名称" prop="name">
-          <el-input v-model="data.form.name" autocomplete="off" />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-      <span class="dialog-footer">
-        <el-button @click="data.formVisible = false">取 消</el-button>
-        <el-button type="primary" @click="save">保 存</el-button>
-      </span>
-      </template>
-    </el-dialog>
 
   </div>
 </template>
@@ -99,7 +89,8 @@ const data = reactive({
   formVisible: false,
   form: {},
   tableData: [],
-  name: null,
+  orderNo: null,
+  goodsName: null,
   rules:{name:[
       { required: true, message: '请输入名称', trigger: 'blur' },
     ]
@@ -113,6 +104,7 @@ const load = () => {
       pageNum: data.pageNum,
       pageSize: data.pageSize,
       orderNo: data.orderNo,
+      goodsName: data.goodsName,
       userId: data.user.id
     }
   }).then(res => {
@@ -147,13 +139,28 @@ const add = () => {
   })
 }
 
+const cancel = (row) => {
+  ElMessageBox.confirm('您确认取消订单吗?', '二次确认', { type: 'warning' }).then(res => {
+    data.form = row;
+    data.form.status = '已取消';
+    update();
+  }).catch(err => {})
+}
+
+const done = (row) => {
+  ElMessageBox.confirm('您确认订单货物已经收到了吗?', '二次确认', { type: 'warning' }).then(res => {
+    data.form = row;
+    data.form.status = '已完成';
+    update();
+  }).catch(err => {})
+}
+
 // 编辑保存
 const update = () => {
   request.put('/orders/update', data.form).then(res => {
     if (res.code === '200') {
       load()
       ElMessage.success('操作成功')
-      data.formVisible = false
     } else {
       ElMessage.error(res.msg)
     }
@@ -187,6 +194,7 @@ const handleDelete = (id) => {
 // 重置
 const reset = () => {
   data.orderNo = null
+  data.goodsName = null
   load()
 }
 </script>
