@@ -46,6 +46,10 @@
               <el-icon><Document /></el-icon>
               <span>轮播图信息</span>
             </el-menu-item>
+            <el-menu-item index="/manager/comment">
+              <el-icon><Document /></el-icon>
+              <span>订单评价</span>
+            </el-menu-item>
             <el-menu-item index="/manager/collect">
               <el-icon><Document /></el-icon>
               <span>用户收藏</span>

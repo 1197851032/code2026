@@ -33,14 +33,30 @@
     <div class="card" style="padding: 20px; margin-bottom: 50px">
       <div style="font-size: 20px; padding-bottom: 10px; border-bottom: 1px solid #ddd">
         <span @click="changeTab('商品详情')" style="cursor: pointer" :class="{'current-active' : data.current === '商品详情'}">商品详情</span>
-        <span @click="changeTab('商品评论')" :class="{'current-active' : data.current === '商品评论'}" style="margin-left: 20px;cursor: pointer">商品评论</span>
+        <span @click="changeTab('商品评价')" :class="{'current-active' : data.current === '商品评价'}" style="margin-left: 20px;cursor: pointer">商品评价</span>
       </div>
       <div v-if="data.current === '商品详情'" style="padding: 10px" v-html="data.goods.content"></div>
-      <div v-if="data.current === '商品评论'" style="min-height: 700px">
+      <div v-if="data.current === '商品评价'" style="min-height: 700px">
         <div v-if="data.commentList.length === 0" style="padding: 30px; text-align: center; color: #666">暂无评论...</div>
-        <div v-if="data.commentList.length > 0" style="padding: 20px; text-align: center">
+        <div v-if="data.commentList.length > 0" style="padding: 20px">
           <!--评论内容-->
+          <div v-for="(item, index) in data.commentList" :key="item.id" style="display: flex; grid-gap: 10px; padding: 10px 0;
+           border-bottom: 1px solid #ddd" :style="{ 'borderWidth': index === data.commentList.length - 1 ? 0 : '1px'}">
+            <img :src="item.userAvatar" alt="" style="width: 50px; height: 50px; border-radius: 50%">
+            <div style="flex: 1">
+              <div>
+                <span>{{ item.userName }}</span>
+                <span style="color: #666; font-size: 13px; margin-left: 10px">{{ item.time }}</span>
+              </div>
+              <div style="margin-bottom: 5px"><el-rate v-model="item.score" show-score allow-half disabled></el-rate></div>
+              <div>{{ item.content }}</div>
+            </div>
+          </div>
+          <div style="margin-top: 20px">
+            <el-pagination @current-change="loadComment" layout="total, prev, pager, next" v-model:page-size="data.pageSize" v-model:current-page="data.pageNum" :total="data.total"/>
+          </div>
         </div>
+
       </div>
     </div>
     <el-dialog title="下单信息" width="30%" v-model="data.formVisible" :close-on-click-modal="false" destroy-on-close>
@@ -80,6 +96,9 @@ const data = reactive({
   num: 1,
   current: '商品详情',
   commentList:[],
+  pageNum: 1,
+  pageSize: 5,
+  total: 0,
   userCollect: {},
   form: {},
   formVisible: false,
@@ -92,6 +111,20 @@ const data = reactive({
     ],
   }
 })
+
+const loadComment = () => {
+  request.get('/comment/selectPage', {
+    params: {
+      pageNum: data.pageNum,
+      pageSize: data.pageSize,
+      goodsId: data.id
+    }
+  }).then(res => {
+    data.commentList = res.data?.list
+    data.total = res.data?.total
+  })
+}
+loadComment();
 
 const handleAddOrder = () => {
   data.form = {};
