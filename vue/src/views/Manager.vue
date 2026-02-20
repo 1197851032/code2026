@@ -25,6 +25,10 @@
             <el-icon><HomeFilled /></el-icon>
             <span>系统首页</span>
           </el-menu-item>
+          <el-menu-item index="/manager/dataManager">
+            <el-icon><TrendCharts /></el-icon>
+            <span>数据统计</span>
+          </el-menu-item>
           <el-sub-menu index="info">
             <template #title>
               <el-icon><Memo /></el-icon>

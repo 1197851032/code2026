@@ -19,6 +19,7 @@
           <span style="color: red;font-size: 18px">¥</span><b style="color: red; font-size: 30px">{{ data.goods.price }}</b>
           <span style="color: #666;margin-left: 20px">累计销量 {{ data.goods.saleCount }}</span>
           <span style="color: #666;margin-left: 20px">剩余库存 {{ data.goods.store }}</span>
+          <span style="color: #666;margin-left: 20px">点击量 {{ data.goods.views }}</span>
         </div>
         <div style="margin-bottom: 20px; padding: 10px; border-radius: 5px; background-color: #e8e4e4; line-height: 25px; text-align:justify">{{ data.goods.description }}</div>
         <div>
@@ -111,6 +112,16 @@ const data = reactive({
     ],
   }
 })
+
+const addViews = () =>{
+  request.put('/goods/addViews/' + data.id).then(res => {
+    if(res.code === '200'){
+    } else {
+      ElMessage.error(res.msg)
+    }
+  })
+}
+addViews()
 
 const loadComment = () => {
   request.get('/comment/selectPage', {

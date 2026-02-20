@@ -20,6 +20,10 @@ public class UserService {
     @Resource
     private UserMapper userMapper;
 
+    public List<User> selectAll(String name) {
+        return userMapper.selectAll(name);
+    }
+
     public PageInfo<User> selectPage(Integer pageNum, Integer pageSize, String name){
         PageHelper.startPage(pageNum,pageSize);
         List<User> list = userMapper.selectAll(name);
