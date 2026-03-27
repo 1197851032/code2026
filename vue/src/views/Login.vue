@@ -56,8 +56,18 @@
         request.post('/login', data.form).then(res => {
           if (res.code === '200') {
             ElMessage.success("登录成功")
-            localStorage.setItem('system-user', JSON.stringify(res.data))
-            if(res.data.role ==='管理员'){
+            
+            // 保存JWT token和用户信息
+            if (res.data.token) {
+              localStorage.setItem('system-token', res.data.token);
+            }
+            if (res.data.user) {
+              localStorage.setItem('system-user', JSON.stringify(res.data.user));
+            }
+            
+            // 根据角色跳转到不同页面
+            const user = res.data.user || res.data;
+            if(user.role ==='管理员'){
               router.push('/manager/home')
             } else {
               router.push('/front/home')
@@ -65,6 +75,9 @@
           } else {
             ElMessage.error(res.msg)
           }
+        }).catch(error => {
+          console.error('登录失败:', error)
+          ElMessage.error('登录失败，请检查网络连接')
         })
       }
     })).catch(error => {

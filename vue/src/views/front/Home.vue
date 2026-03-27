@@ -17,9 +17,13 @@
         <div style="padding: 10px 0">
           <div  @click="router.push('/front/goodsDetail?id=' + item.id)" style="cursor:pointer; display:flex; grid-gap: 10px; margin-bottom: 10px" v-for="item in data.recommendGoods" :key="item.id">
             <img style="width: 80px; height: 80px" :src="item.img" alt="" />
-            <div>
-              <div class="line2" style="margin-bottom: 5px">{{ item.name }}</div>
-              <div style="color: red"><span>¥</span><b>{{item.price}}</b></div>
+            <div style="flex: 1; min-width: 0;">
+              <div class="line1" style="margin-bottom: 5px; font-size: 14px; font-weight: 500;">{{ item.name }}</div>
+              <div style="color: red; font-size: 16px; font-weight: bold;"><span>¥ </span>{{ item.price }}</div>
+              <div style="font-size: 12px; color: #666; margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%;">
+                <span v-if="item.description">{{ item.description }}</span>
+                <span v-else>智能推荐</span>
+              </div>
             </div>
           </div>
         </div>
@@ -121,12 +125,33 @@ request.get('/goods/selectAll',{
   data.newGoods = res.data.splice(0,4);
 });
 
-request.get('/goods/selectAll',{
-  params:{
-    status:'上架'
+// 使用推荐系统API获取推荐商品
+request.get('/recommendation/goods', {
+  params: {
+    limit: 4
   }
 }).then(res => {
-  data.recommendGoods = res.data.filter(v => v.recommend === '是').splice(0,4);
+  if (res.code === '200') {
+    data.recommendGoods = res.data;
+  } else {
+    // 如果推荐API失败，使用原来的管理员推荐
+    request.get('/goods/selectAll',{
+      params:{
+        status:'上架'
+      }
+    }).then(res => {
+      data.recommendGoods = res.data.filter(v => v.recommend === '是').splice(0,4);
+    });
+  }
+}).catch(() => {
+  // 如果推荐API出错，使用原来的管理员推荐
+  request.get('/goods/selectAll',{
+    params:{
+      status:'上架'
+    }
+  }).then(res => {
+    data.recommendGoods = res.data.filter(v => v.recommend === '是').splice(0,4);
+  });
 });
 </script>
 

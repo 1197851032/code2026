@@ -118,9 +118,15 @@ const updateUser = () => {
 }
 
 const logout = () => {
-  router.push('/login')
+  // 清除localStorage中的用户信息和token
+  localStorage.removeItem('system-user')
+  localStorage.removeItem('system-token')
+  
+  // 显示成功消息
   ElMessage.success('退出成功')
-  localStorage.removeItem('code2026-user')
+  
+  // 跳转到登录页
+  router.push('/login')
 }
 </script>
 

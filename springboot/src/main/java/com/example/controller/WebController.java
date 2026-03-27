@@ -7,13 +7,17 @@ import com.example.common.Result;
 import com.example.entity.*;
 import com.example.mapper.OrderDetailMapper;
 import com.example.service.*;
+import com.example.util.JwtUtil;
 import jakarta.annotation.Resource;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.util.*;
 
-
+/**
+ * 
+ */
 @RestController
 public class WebController {
 
@@ -29,11 +33,11 @@ public class WebController {
     private CategoryService categoryService;
     @Resource
     private OrderDetailMapper orderDetailMapper;
-
-
+    @Autowired
+    private JwtUtil jwtUtil;
 
     /**
-     * 默认请求接口
+     * 
      */
     @GetMapping("/")
     public Result hello() {
@@ -41,7 +45,7 @@ public class WebController {
     }
 
     /**
-     * 登录
+     * - JWT
      */
     @PostMapping("/login")
     public Result login(@RequestBody Account account) {
@@ -55,11 +59,19 @@ public class WebController {
         if(ac == null){
             return Result.error("登录失败，用户不存在");
         }
-        return Result.success(ac);
+        
+        // JWT token
+        String token = jwtUtil.generateToken(ac.getUsername(), ac.getId(), ac.getRole());
+        
+        Map<String, Object> result = new HashMap<>();
+        result.put("token", token);
+        result.put("user", ac);
+        
+        return Result.success(result);
     }
 
     /**
-     * 注册
+     * 
      */
     @PostMapping("/register")
     public Result register(@RequestBody User user) {
@@ -71,7 +83,7 @@ public class WebController {
     }
 
     /**
-     * 修改密码
+     * 
      */
     @PutMapping("/updatePassword")
     public Result updatePassword(@RequestBody Account account) {

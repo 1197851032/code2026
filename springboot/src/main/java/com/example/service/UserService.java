@@ -67,6 +67,21 @@ public class UserService {
         return dbUser;
     }
 
+    public User login(String username, String password) {
+        User dbUser = userMapper.selectByUsername(username);
+        if (ObjectUtil.isNull(dbUser)) {
+            return null;
+        }
+        if (!password.equals(dbUser.getPassword())) {
+            return null;
+        }
+        return dbUser;
+    }
+
+    public User selectByUsername(String username) {
+        return userMapper.selectByUsername(username);
+    }
+
     public User selectById(Integer id) {
         return userMapper.selectById(id);
     }

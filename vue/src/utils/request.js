@@ -11,10 +11,17 @@ const request = axios.create({
 // 可以自请求发送前对请求做一些处理
 request.interceptors.request.use(config => {
     config.headers['Content-Type'] = 'application/json;charset=utf-8';
+    
+    // 添加JWT token到请求头
+    const token = localStorage.getItem('system-token');
+    if (token) {
+        config.headers['Authorization'] = 'Bearer ' + token;
+    }
+    
     return config
 }, error => {
     return Promise.reject(error)
-});
+})
 
 // response 拦截器
 // 可以在接口响应后统一处理结果
@@ -32,6 +39,9 @@ request.interceptors.response.use(
         // 当权限验证不通过的时候给出提示
         if (res.code === '401') {
             ElMessage.error(res.msg);
+            // 清除token并跳转到登录页
+            localStorage.removeItem('system-token');
+            localStorage.removeItem('system-user');
             router.push("/login")
         }
         return res;
