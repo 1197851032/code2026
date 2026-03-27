@@ -84,8 +84,26 @@
             :key="index"
             :class="['message', message.type]"
           >
-            <div class="message-content">{{ message.content }}</div>
+            <div class="message-content" v-html="message.content"></div>
             <div class="message-time">{{ message.time }}</div>
+          </div>
+        </div>
+        
+        <!-- 推荐问题区域 -->
+        <div v-if="showQuickQuestions" class="quick-questions">
+          <div class="quick-title">💡 您可能想问：</div>
+          <div class="question-tags">
+            <el-tag
+              v-for="question in quickQuestions"
+              :key="question"
+              @click="selectQuestion(question)"
+              class="question-tag"
+              type="primary"
+              effect="light"
+              size="small"
+            >
+              {{ question }}
+            </el-tag>
           </div>
         </div>
         
@@ -126,6 +144,19 @@ const inputMessage = ref('')
 const messages = ref([])
 const messagesContainer = ref(null)
 const isLoading = ref(false)
+const showQuickQuestions = ref(false)
+
+// 推荐问题列表
+const quickQuestions = ref([
+  '推荐一些热门商品',
+  '查询商品价格',
+  '有什么新商品吗',
+  '如何购买商品',
+  '支持哪些支付方式',
+  '商品质量怎么样',
+  '可以退换货吗',
+  '配送需要多长时间'
+])
 
 const toggleChat = () => {
   showChat.value = !showChat.value
@@ -133,14 +164,24 @@ const toggleChat = () => {
     // 添加欢迎消息
     messages.value.push({
       type: 'received',
-      content: '您好！我是校园小卖部的智能客服，请问有什么可以帮助您？',
+      content: '您好！我是校园小卖部的智能客服，请问有什么可以帮助您？<br><br>您可以点击下方的问题快速开始对话哦！',
       time: getCurrentTime()
     })
+    // 显示推荐问题
+    showQuickQuestions.value = true
   }
 }
 
 const minimizeChat = () => {
   showChat.value = false
+}
+
+// 选择推荐问题
+const selectQuestion = (question) => {
+  inputMessage.value = question
+  sendMessage()
+  // 隐藏推荐问题
+  showQuickQuestions.value = false
 }
 
 // 获取当前时间
@@ -334,6 +375,38 @@ const updateUser = () => {
   font-size: 12px;
   margin-top: 2px;
   font-weight: 500;
+}
+
+/* 推荐问题样式 */
+.quick-questions {
+  padding: 12px 16px;
+  border-top: 1px solid #f0f0f0;
+  background: #fafafa;
+}
+
+.quick-title {
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.question-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.question-tag {
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 12px;
+  padding: 4px 8px;
+}
+
+.question-tag:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(64, 158, 255, 0.3);
 }
 
 .chatbot-window {

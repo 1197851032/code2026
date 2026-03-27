@@ -337,7 +337,7 @@ public class RecommendationService {
     }
 
     /**
-     * 计算推荐商品分数
+     * 计算推荐商品分数（高级评分预测模型）
      */
     private Map<Integer, Double> calculateRecommendations(Integer userId,
                                                         List<Integer> similarUsers,
@@ -346,11 +346,25 @@ public class RecommendationService {
         Map<Integer, Double> itemScores = new HashMap<>();
         Map<Integer, Integer> currentUserItems = matrix.getOrDefault(userId, new HashMap<>());
         
+        // 计算基准评分（用户平均评分）
+        double baselineRating = calculateUserAverageRating(currentUserItems);
+        
+        // 相似度阈值
+        final double SIMILARITY_THRESHOLD = 0.1;
+        
         for (Integer similarUserId : similarUsers) {
             Map<Integer, Integer> similarUserItems = matrix.getOrDefault(similarUserId, new HashMap<>());
             
-            // 计算相似度（这里简化处理，实际应该使用之前计算的相似度）
+            // 计算相似度
             double similarity = calculateCosineSimilarity(currentUserItems, similarUserItems);
+            
+            // 相似度阈值过滤
+            if (similarity < SIMILARITY_THRESHOLD) {
+                continue;
+            }
+            
+            // 计算相似用户的基准评分
+            double similarUserBaseline = calculateUserAverageRating(similarUserItems);
             
             for (Map.Entry<Integer, Integer> entry : similarUserItems.entrySet()) {
                 Integer itemId = entry.getKey();
@@ -359,12 +373,33 @@ public class RecommendationService {
                 // 跳过用户已经购买的商品
                 if (userPurchasedGoodsIds.contains(itemId)) continue;
                 
-                // 累加推荐分数
-                itemScores.put(itemId, itemScores.getOrDefault(itemId, 0.0) + similarity * rating);
+                // 高级评分预测：基准评分 + 加权偏差
+                double ratingDeviation = rating - similarUserBaseline;
+                double predictedRating = baselineRating + (similarity * ratingDeviation);
+                
+                // 累加推荐分数（使用相似度作为权重）
+                double weightedScore = similarity * predictedRating;
+                itemScores.put(itemId, itemScores.getOrDefault(itemId, 0.0) + weightedScore);
             }
         }
         
         return itemScores;
+    }
+    
+    /**
+     * 计算用户平均评分（基准评分）
+     */
+    private double calculateUserAverageRating(Map<Integer, Integer> userItems) {
+        if (userItems.isEmpty()) {
+            return 1.0; // 默认基准评分
+        }
+        
+        double sum = 0.0;
+        for (Integer rating : userItems.values()) {
+            sum += rating;
+        }
+        
+        return sum / userItems.size();
     }
 
     /**
