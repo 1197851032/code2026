@@ -75,24 +75,10 @@ public class SimpleRagService {
             List<Goods> allGoods = goodsMapper.selectAll(null);
             System.out.println("数据库中总商品数量: " + allGoods.size());
             
-            // 如果是通用问题，返回热门商品
-            if (isGeneralQuestion(userMessage)) {
-                System.out.println("检测到通用问题，返回热门商品");
-                return allGoods.stream()
-                        .sorted((a, b) -> Integer.compare(b.getSaleCount() != null ? b.getSaleCount() : 0, 
-                                                        a.getSaleCount() != null ? a.getSaleCount() : 0))
-                        .limit(3)
-                        .collect(Collectors.toList());
-            }
+            // 直接返回所有商品，让AI模型自己判断相关性
+            System.out.println("SimpleRAG - 直接返回所有商品，让AI模型处理");
+            return allGoods;
             
-            // 简单的关键词匹配（实际项目中应该使用更复杂的相似度计算）
-            List<Goods> relevantGoods = allGoods.stream()
-                    .filter(goods -> isGoodsRelevant(goods, userMessage))
-                    .limit(3)  // 最多返回3个相关商品
-                    .collect(Collectors.toList());
-            
-            System.out.println("匹配到的商品数量: " + relevantGoods.size());
-            return relevantGoods;
         } catch (Exception e) {
             System.err.println("搜索商品失败: " + e.getMessage());
             e.printStackTrace();
@@ -107,7 +93,9 @@ public class SimpleRagService {
                searchText.contains("有什么") ||
                searchText.contains("可以买") ||
                searchText.contains("选择") ||
-               searchText.contains("商品");
+               searchText.contains("商品") ||
+               searchText.contains("热门") ||
+               searchText.contains("新商品");
     }
 
     private boolean isGoodsRelevant(Goods goods, String userMessage) {
@@ -116,6 +104,11 @@ public class SimpleRagService {
         String description = goods.getDescription() != null ? goods.getDescription().toLowerCase() : "";
         String content = goods.getContent() != null ? goods.getContent().toLowerCase() : "";
         String category = goods.getCategoryName() != null ? goods.getCategoryName().toLowerCase() : "";
+        
+        // 检查是否是通用推荐问题
+        if (isGeneralQuestion(userMessage)) {
+            return true; // 通用推荐问题返回所有商品
+        }
         
         // 检查是否包含关键词
         return name.contains(searchText) || 

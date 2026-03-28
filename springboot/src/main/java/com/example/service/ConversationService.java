@@ -217,12 +217,12 @@ public class ConversationService {
     private List<Goods> searchRelevantGoods(String userMessage) {
         try {
             List<Goods> allGoods = goodsMapper.selectAll(null);
+            System.out.println("数据库中总商品数量: " + allGoods.size());
             
-            // 简单的关键词匹配
-            return allGoods.stream()
-                    .filter(goods -> isGoodsRelevant(goods, userMessage))
-                    .limit(3)
-                    .collect(Collectors.toList());
+            // 直接返回所有商品，让AI模型自己判断相关性
+            System.out.println("直接返回所有商品，让AI模型处理");
+            return allGoods;
+             
         } catch (Exception e) {
             System.err.println("搜索商品失败: " + e.getMessage());
             return List.of();
@@ -235,8 +235,29 @@ public class ConversationService {
         String description = goods.getDescription() != null ? goods.getDescription().toLowerCase() : "";
         String category = goods.getCategoryName() != null ? goods.getCategoryName().toLowerCase() : "";
         
+        // 检查是否是通用推荐问题
+        if (isGeneralQuestion(userMessage)) {
+            return true; // 通用推荐问题返回所有商品
+        }
+        
+        // 检查是否包含关键词
         return name.contains(searchText) || 
                description.contains(searchText) || 
                category.contains(searchText);
+    }
+    
+    /**
+     * 检查是否是通用推荐问题
+     */
+    private boolean isGeneralQuestion(String userMessage) {
+        String searchText = userMessage.toLowerCase();
+        return searchText.contains("推荐") || 
+               searchText.contains("买什么") || 
+               searchText.contains("有什么") ||
+               searchText.contains("可以买") ||
+               searchText.contains("选择") ||
+               searchText.contains("商品") ||
+               searchText.contains("热门") ||
+               searchText.contains("新商品");
     }
 }

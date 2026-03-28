@@ -69,12 +69,19 @@
             </div>
             <div class="header-info">
               <span class="title">智能客服</span>
-              <span class="status">在线</span>
+              <span class="status">{{ isNewSession ? '新对话' : '继续对话' }}</span>
             </div>
           </div>
           <div class="header-actions">
-            <el-icon @click="minimizeChat" class="header-icon"><Minus /></el-icon>
-            <el-icon @click="toggleChat" class="header-icon"><Close /></el-icon>
+            <el-tooltip content="清除记忆" placement="top">
+              <el-icon @click="clearMemory" class="header-icon"><Delete /></el-icon>
+            </el-tooltip>
+            <el-tooltip content="最小化" placement="top">
+              <el-icon @click="minimizeChat" class="header-icon"><Minus /></el-icon>
+            </el-tooltip>
+            <el-tooltip content="关闭" placement="top">
+              <el-icon @click="toggleChat" class="header-icon"><Close /></el-icon>
+            </el-tooltip>
           </div>
         </div>
         
@@ -130,7 +137,7 @@
 import { reactive, ref, nextTick, onMounted, onUnmounted } from "vue";
 import router from "@/router";
 import {ElMessage} from "element-plus";
-import { Close, Minus } from '@element-plus/icons-vue'
+import { Close, Minus, Delete } from '@element-plus/icons-vue'
 import Footer from "@/components/Footer.vue";
 
 const data = reactive({
@@ -145,6 +152,8 @@ const messages = ref([])
 const messagesContainer = ref(null)
 const isLoading = ref(false)
 const showQuickQuestions = ref(false)
+const sessionId = ref('')
+const isNewSession = ref(true)
 
 // 推荐问题列表
 const quickQuestions = ref([
@@ -152,22 +161,87 @@ const quickQuestions = ref([
   '查询商品价格',
   '有什么新商品吗',
   '如何购买商品',
-  '支持哪些支付方式',
-  '商品质量怎么样',
-  '可以退换货吗',
-  '配送需要多长时间'
+  '商品质量怎么样'
 ])
 
-const toggleChat = () => {
+const toggleChat = async () => {
   showChat.value = !showChat.value
-  if (showChat.value && messages.value.length === 0) {
-    // 添加欢迎消息
+  if (showChat.value) {
+    // 清空当前消息
+    messages.value = []
+    
+    try {
+      // 尝试获取最近的会话
+      const recentRes = await request.get('/conversation/recent?limit=5')
+      
+      if (recentRes.code === '200' && recentRes.data.length > 0) {
+        // 有历史对话，加载最近的会话
+        const lastMessage = recentRes.data[recentRes.data.length - 1]
+        sessionId.value = lastMessage.sessionId
+        
+        // 获取完整会话历史
+        const historyRes = await request.get(`/conversation/history/${sessionId.value}`)
+        if (historyRes.code === '200') {
+          // 转换历史消息格式
+          messages.value = historyRes.data.map(msg => ({
+            type: msg.role === 'USER' ? 'sent' : 'received',
+            content: msg.content,
+            time: new Date(msg.createTime).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
+          }))
+          
+          // 添加恢复对话提示
+          messages.value.push({
+            type: 'received',
+            content: '📝 对话已恢复，您可以继续之前的交流',
+            time: getCurrentTime()
+          })
+          
+          isNewSession.value = false
+          showQuickQuestions.value = false
+        }
+      } else {
+        // 没有历史对话，开始新会话
+        await startNewSession()
+      }
+    } catch (error) {
+      console.error('加载对话历史失败:', error)
+      // 出错时开始新会话
+      await startNewSession()
+    }
+    
+    // 滚动到底部
+    nextTick(() => {
+      scrollToBottom()
+    })
+  }
+}
+
+// 开始新会话
+const startNewSession = async () => {
+  try {
+    const res = await request.post('/conversation/start')
+    if (res.code === '200') {
+      sessionId.value = res.data.sessionId
+      isNewSession.value = true
+      
+      // 添加欢迎消息
+      messages.value.push({
+        type: 'received',
+        content: '您好！我是校园小卖部的智能客服，请问有什么可以帮助您？<br><br>您可以点击下方的问题快速开始对话哦！',
+        time: getCurrentTime()
+      })
+      
+      // 显示推荐问题
+      showQuickQuestions.value = true
+    }
+  } catch (error) {
+    console.error('开始新会话失败:', error)
+    // 降级到普通聊天模式
     messages.value.push({
       type: 'received',
-      content: '您好！我是校园小卖部的智能客服，请问有什么可以帮助您？<br><br>您可以点击下方的问题快速开始对话哦！',
+      content: '您好！我是校园小卖部的智能客服，请问有什么可以帮助您？',
       time: getCurrentTime()
     })
-    // 显示推荐问题
     showQuickQuestions.value = true
   }
 }
@@ -184,6 +258,37 @@ const selectQuestion = (question) => {
   showQuickQuestions.value = false
 }
 
+// 清除记忆功能
+const clearMemory = async () => {
+  try {
+    if (sessionId.value) {
+      // 清除当前会话
+      await request.delete(`/conversation/session/${sessionId.value}`)
+    } else {
+      // 清除所有对话记录
+      await request.delete('/conversation/all')
+    }
+    
+    // 重置状态
+    sessionId.value = ''
+    isNewSession.value = true
+    messages.value = []
+    
+    // 开始新会话
+    await startNewSession()
+    
+    ElMessage.success('对话记忆已清除')
+    
+    // 滚动到底部
+    nextTick(() => {
+      scrollToBottom()
+    })
+  } catch (error) {
+    console.error('清除记忆失败:', error)
+    ElMessage.error('清除记忆失败，请稍后重试')
+  }
+}
+
 // 获取当前时间
 const getCurrentTime = () => {
   const now = new Date()
@@ -192,7 +297,7 @@ const getCurrentTime = () => {
 
 import request from "@/utils/request";
 
-const sendMessage = () => {
+const sendMessage = async () => {
   if (!inputMessage.value.trim() || isLoading.value) return
 
   // 添加用户消息
@@ -207,12 +312,34 @@ const sendMessage = () => {
   inputMessage.value = ''
   isLoading.value = true
 
-  // 调用后端接口
-  request.post('/ai/chat', { message: userMessage }).then(res => {
+  try {
+    let res;
+    
+    // 如果有会话ID，使用带记忆的API
+    if (sessionId.value) {
+      res = await request.post('/conversation/chat', {
+        sessionId: sessionId.value,
+        message: userMessage
+      })
+    } else {
+      // 降级到普通聊天
+      res = await request.post('/ai/chat', { message: userMessage })
+    }
+    
     if (res.code === '200') {
+      let responseContent;
+      
+      if (sessionId.value) {
+        // 带记忆的API响应
+        responseContent = res.data.aiResponse
+      } else {
+        // 普通API响应
+        responseContent = res.data
+      }
+      
       messages.value.push({
         type: 'received',
-        content: res.data,
+        content: responseContent,
         time: getCurrentTime()
       })
     } else {
@@ -222,28 +349,43 @@ const sendMessage = () => {
         time: getCurrentTime()
       })
     }
+  } catch (error) {
+    console.error('发送消息失败:', error)
+    
+    // 如果记忆API失败，尝试降级到普通聊天
+    if (sessionId.value) {
+      try {
+        const fallbackRes = await request.post('/ai/chat', { message: userMessage })
+        if (fallbackRes.code === '200') {
+          messages.value.push({
+            type: 'received',
+            content: fallbackRes.data,
+            time: getCurrentTime()
+          })
+        } else {
+          throw new Error('备用API也失败了')
+        }
+      } catch (fallbackError) {
+        messages.value.push({
+          type: 'received',
+          content: '服务器繁忙，请稍后再试。',
+          time: getCurrentTime()
+        })
+      }
+    } else {
+      messages.value.push({
+        type: 'received',
+        content: '服务器繁忙，请稍后再试。',
+        time: getCurrentTime()
+      })
+    }
+  } finally {
+    isLoading.value = false
     // 滚动到底部
     nextTick(() => {
       scrollToBottom()
     })
-  }).catch(error => {
-    console.error(error)
-    messages.value.push({
-      type: 'received',
-      content: '服务器繁忙，请稍后再试。',
-      time: getCurrentTime()
-    })
-    nextTick(() => {
-      scrollToBottom()
-    })
-  }).finally(() => {
-    isLoading.value = false
-  })
-
-  // 滚动到底部
-  nextTick(() => {
-    scrollToBottom()
-  })
+  }
 }
 
 const scrollToBottom = () => {

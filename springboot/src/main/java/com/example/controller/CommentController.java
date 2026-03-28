@@ -49,18 +49,48 @@ public class CommentController extends BaseController {
     }
 
     /**
+     * 更新 - 只能更新自己的评论
+     */
+    @PutMapping("/update")
+    public Result updateById(@RequestBody Comment comment, HttpServletRequest request) {
+        Comment existingComment = commentService.selectById(comment.getId());
+        if (existingComment == null) {
+            return Result.error("评论不存在");
+        }
+        // 检查是否为当前用户的评论
+        if (!existingComment.getUserId().equals(getCurrentUserId(request))) {
+            return Result.error("无权限修改此评论");
+        }
+        comment.setUserId(getCurrentUserId(request));
+        commentService.updateById(comment);
+        return Result.success();
+    }
+
+    /**
      * 查询当前用户的所有评论
      */
     @GetMapping("/selectAll")
-    public Result selectAll(HttpServletRequest request) {
+    public Result selectAll(@RequestParam(required = false) Integer orderId,
+                           @RequestParam(required = false) Integer goodsId,
+                           HttpServletRequest request) {
         Comment comment = new Comment();
         
-        // 如果是管理员，查询所有评论；否则只查询当前用户的评论
-        if (isAdmin(request)) {
-            // 管理员可以查看所有评论
-        } else {
-            // 普通用户只能查看自己的评论
-            comment.setUserId(getCurrentUserId(request));
+        // 如果指定了订单ID或商品ID，按条件查询
+        if (orderId != null) {
+            comment.setOrderId(orderId);
+        }
+        if (goodsId != null) {
+            comment.setGoodsId(goodsId);
+        }
+        
+        // 如果没有指定条件，按用户权限查询
+        if (orderId == null && goodsId == null) {
+            if (isAdmin(request)) {
+                // 管理员可以查看所有评论
+            } else {
+                // 普通用户只能查看自己的评论
+                comment.setUserId(getCurrentUserId(request));
+            }
         }
         
         List<Comment> list = commentService.selectAll(comment);
@@ -73,15 +103,21 @@ public class CommentController extends BaseController {
     @GetMapping("/selectPage")
     public Result selectPage(@RequestParam(defaultValue = "1") Integer pageNum,
                              @RequestParam(defaultValue = "10") Integer pageSize,
+                             @RequestParam(required = false) Integer goodsId,
                              HttpServletRequest request) {
         Comment comment = new Comment();
         
-        // 如果是管理员，查询所有评论；否则只查询当前用户的评论
-        if (isAdmin(request)) {
-            // 管理员可以查看所有评论
+        // 如果指定了商品ID，按商品ID查询
+        if (goodsId != null) {
+            comment.setGoodsId(goodsId);
         } else {
-            // 普通用户只能查看自己的评论
-            comment.setUserId(getCurrentUserId(request));
+            // 否则按用户权限查询
+            if (isAdmin(request)) {
+                // 管理员可以查看所有评论
+            } else {
+                // 普通用户只能查看自己的评论
+                comment.setUserId(getCurrentUserId(request));
+            }
         }
         
         PageInfo<Comment> page = commentService.selectPage(comment, pageNum, pageSize);
@@ -114,6 +150,18 @@ public class CommentController extends BaseController {
         
         PageInfo<Comment> page = commentService.selectPage(new Comment(), pageNum, pageSize);
         return Result.success(page);
+    }
+
+    /**
+     * 根据商品ID查询评价
+     */
+    @GetMapping("/selectByGoodsId/{goodsId}")
+    public Result selectByGoodsId(@PathVariable Integer goodsId) {
+        Comment comment = new Comment();
+        comment.setGoodsId(goodsId);
+        
+        List<Comment> list = commentService.selectAll(comment);
+        return Result.success(list);
     }
 
 }

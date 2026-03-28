@@ -41,8 +41,7 @@ mybatis:
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
     map-underscore-to-camel-case: true
 
-fileBaseUrl: http://localhost
-#加:9090
+fileBaseUrl: http://localhost:9090
 
 # OpenAI配置
 openai:

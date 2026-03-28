@@ -49,7 +49,7 @@ public class OrdersController extends BaseController {
     }
 
     /**
-     * 修改 - 只能修改自己的订单
+     * 修改 - 只能修改自己的订单，管理员可以修改所有订单
      */
     @PutMapping("/update")
     public Result updateById(@RequestBody Orders orders, HttpServletRequest request) {
@@ -57,11 +57,15 @@ public class OrdersController extends BaseController {
         if (existingOrders == null) {
             return Result.error("订单不存在");
         }
-        // 检查是否为当前用户的订单
-        if (!existingOrders.getUserId().equals(getCurrentUserId(request))) {
-            return Result.error("无权限修改此订单");
+        
+        // 如果不是管理员，检查是否为当前用户的订单
+        if (!isAdmin(request)) {
+            if (!existingOrders.getUserId().equals(getCurrentUserId(request))) {
+                return Result.error("无权限修改此订单");
+            }
+            orders.setUserId(getCurrentUserId(request));
         }
-        orders.setUserId(getCurrentUserId(request));
+        
         ordersService.updateById(orders);
         return Result.success();
     }
